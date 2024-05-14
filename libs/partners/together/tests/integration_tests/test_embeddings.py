@@ -1,4 +1,5 @@
 """Test Together embeddings."""
+
 from langchain_together.embeddings import TogetherEmbeddings
 
 

@@ -1,10 +1,9 @@
-import os
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
-import together  # type: ignore
 from langchain_core.embeddings import Embeddings
-from langchain_core.pydantic_v1 import BaseModel, SecretStr, root_validator
-from langchain_core.utils import convert_to_secret_str
+from langchain_core.pydantic_v1 import BaseModel, Field, SecretStr, root_validator
+from langchain_core.utils import convert_to_secret_str, get_from_dict_or_env
+from together import Together  # type: ignore
 
 
 class TogetherEmbeddings(BaseModel, Embeddings):
@@ -20,22 +19,22 @@ class TogetherEmbeddings(BaseModel, Embeddings):
             )
     """
 
-    _client: together.Together
-    together_api_key: SecretStr = convert_to_secret_str("")
-    model: str
+    _client: Any = Field(default=None, exclude=True)  #: :meta private:
+    together_api_key: Optional[SecretStr] = Field(default=None, alias="api_key")
+    """Automatically inferred from env var `TOGETHER_API_KEY` if not provided."""
+    model: str = "BAAI/bge-large-en-v1.5"
 
     @root_validator()
     def validate_environment(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         """Validate environment variables."""
-        together_api_key = convert_to_secret_str(
-            values.get("together_api_key") or os.getenv("TOGETHER_API_KEY") or ""
+        together_api_key = get_from_dict_or_env(
+            values, "together_api_key", "TOGETHER_API_KEY"
         )
-        values["together_api_key"] = together_api_key
+        values["together_api_key"] = (
+            convert_to_secret_str(together_api_key) if together_api_key else None
+        )
 
-        # note this sets it globally for module
-        # there isn't currently a way to pass it into client
-        together.api_key = together_api_key.get_secret_value()
-        values["_client"] = together.Together()
+        values["_client"] = Together()
         return values
 
     def embed_documents(self, texts: List[str]) -> List[List[float]]:
