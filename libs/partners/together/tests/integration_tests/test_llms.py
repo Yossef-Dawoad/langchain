@@ -9,12 +9,12 @@ You'll then need to set TOGETHER_API_KEY environment variable to your api key.
 
 import pytest as pytest
 
-from langchain_together import Together
+from langchain_together import TogetherAI
 
 
 def test_together_call() -> None:
     """Test simple call to together."""
-    llm = Together(
+    llm = TogetherAI(
         model="togethercomputer/RedPajama-INCITE-7B-Base",
         temperature=0.2,
         max_tokens=250,
@@ -28,7 +28,7 @@ def test_together_call() -> None:
 
 async def test_together_acall() -> None:
     """Test simple call to together."""
-    llm = Together(
+    llm = TogetherAI(
         model="togethercomputer/RedPajama-INCITE-7B-Base",
         temperature=0.2,
         max_tokens=250,
